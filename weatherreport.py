@@ -1,13 +1,10 @@
-
-
 def sensorStub():
     return {
         'temperatureInC': 50,
-        'precipitation': 70,
+        'precipitation': 70,  # > 60 → high precipitation
         'humidity': 26,
-        'windSpeedKMPH': 52
+        'windSpeedKMPH': 52   # > 50 → stormy (but may override logic)
     }
-
 
 def report(sensorReader):
     readings = sensorReader()
@@ -20,25 +17,33 @@ def report(sensorReader):
             weather = "Alert, Stormy with heavy rain"
     return weather
 
+# -------------------------
+# Strengthened test cases
+# -------------------------
 
 def testRainy():
     weather = report(sensorStub)
-    print(weather)
-    assert("rain" in weather)
-
+    print(f"Weather from testRainy: {weather}")
+    # Stronger test: ensure "rain" is mentioned
+    assert("rain" in weather.lower()), f"Expected 'rain' in weather report, got: {weather}"
 
 def testHighPrecipitation():
-    # This instance of stub needs to be different-
-    # to give high precipitation (>60) and low wind-speed (<50)
+    # Use a stub that gives high precipitation and low wind — should still NOT say "Sunny"
+    def highPrecipStub():
+        return {
+            'temperatureInC': 40,
+            'precipitation': 80,  # High
+            'humidity': 50,
+            'windSpeedKMPH': 30   # Low wind
+        }
 
-    weather = report(sensorStub)
-
-    # strengthen the assert to expose the bug
-    # (function returns Sunny day, it should predict rain)
-    assert(len(weather) > 0);
-
+    weather = report(highPrecipStub)
+    print(f"Weather from testHighPrecipitation: {weather}")
+    
+    # Fails because logic doesn't handle this → still returns "Sunny Day"
+    assert(weather != "Sunny Day"), f"Expected non-sunny report for high precipitation, got: {weather}"
 
 if __name__ == '__main__':
     testRainy()
     testHighPrecipitation()
-    print("All is well (maybe!)");
+    print("All is well (maybe!)")
